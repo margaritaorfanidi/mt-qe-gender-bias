@@ -1,0 +1,2 @@
+data/train_data/*.csv filter=lfs diff=lfs merge=lfs -text
+data/train_data/*.parquet filter=lfs diff=lfs merge=lfs -text

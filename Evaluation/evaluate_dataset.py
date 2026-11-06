@@ -42,7 +42,7 @@ def get_args():
 
     parser.add_argument("--batch_size", type=int, default=32)
 
-    parser.add_argument("--output_dir", type=Path, default=Path("/kaggle/working/results"), help="Directory to save evaluation results.")
+    parser.add_argument("--output_dir", type=Path, help="Directory to save evaluation results.")
     
     return parser.parse_args()
 
@@ -140,12 +140,12 @@ def main():
 
         result = evaluator.evaluate()
 
-        score_data = statistic_analysis.GeneralStatistics.GeneralStatistics.compute_scores(
+        score_data = GeneralStatistics.GeneralStatistics.compute_scores(
             result["predicted_score"],
             dataset.scores,
         )
 
-        summary = statistic_analysis.GeneralStatistics.GeneralStatistics.summarize(score_data)
+        summary = GeneralStatistics.GeneralStatistics.summarize(score_data)
        
     # Output filenames
 

@@ -1,0 +1,21 @@
+# Ignore the entire data folder
+/data/
+
+# Ignore cache directory
+/.cache/
+
+./datasets_builders/.venv/
+
+# Ignore Python virtual environments
+.venv/
+__pycache__/
+*.pyc
+
+# Ignore local environment files
+.env
+
+# Ignore Python virtual environments
+.venv312/
+__pycache__/
+*.pyc
+
