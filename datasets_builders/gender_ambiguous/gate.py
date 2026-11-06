@@ -1,4 +1,6 @@
 
+"""Build the GATE evaluation dataset using all 2-variant examples."""
+
 import argparse
 import subprocess
 from pathlib import Path
@@ -16,44 +18,28 @@ LANGUAGES = {
 
 
 def get_args():
-
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
         "--repo_dir",
         type=Path,
         required=True,
-        help="Path where the GATE repository will be cloned."
+        help="Directory for the GATE repository."
     )
 
     parser.add_argument(
         "--output_file",
         type=Path,
         required=True,
-        help="Path where the processed parquet file will be saved."
-    )
-
-    parser.add_argument(
-        "--split",
-        choices=["test", "dev", "all"],
-        default="test",
-        help="Dataset split to load. Default: test."
+        help="Path for the processed Parquet file."
     )
 
     return parser.parse_args()
 
 
 def clone_repository(repo_dir):
-    """
-    Clone the GATE repository if it does not exist.
-    """
-
     if not repo_dir.exists():
-
-        repo_dir.parent.mkdir(
-            parents=True,
-            exist_ok=True
-        )
+        repo_dir.parent.mkdir(parents=True, exist_ok=True)
 
         print("Cloning GATE repository...")
 
@@ -61,24 +47,11 @@ def clone_repository(repo_dir):
             ["git", "clone", REPO_URL, str(repo_dir)],
             check=True
         )
-
     else:
         print("GATE repository already exists.")
 
 
-def load_gate(repo_dir, split):
-    """
-    Load GATE 2-variant files.
-
-    Each example contains:
-        - source: gender-ambiguous English sentence
-        - m: masculine translation
-        - f: feminine translation
-
-    Output format:
-        id, source, masc, fem, lang_pair
-    """
-
+def load_gate(repo_dir):
     all_data = []
 
     for folder, lang in LANGUAGES.items():
@@ -93,18 +66,11 @@ def load_gate(repo_dir, split):
         print(f"Reading: {file}")
 
         if not file.is_file():
-            raise FileNotFoundError(
-                f"File not found: {file}"
-            )
+            raise FileNotFoundError(f"File not found: {file}")
 
-        df = pd.read_csv(
-            file,
-            sep="\t"
-        )
+        df = pd.read_csv(file, sep="\t")
 
-        required_columns = [
-            "source", "m", "f", "data_split"
-        ]
+        required_columns = ["source", "m", "f"]
 
         missing = [
             col for col in required_columns
@@ -116,43 +82,25 @@ def load_gate(repo_dir, split):
                 f"Missing columns in {file}: {missing}"
             )
 
-        if split != "all":
-            df = df[df["data_split"] == split].copy()
-
-        df["id"] = [
-            f"en-{lang}_{i}"
-            for i in df.index
-        ]
-
-        df["lang_pair"] = f"en-{lang}"
-
-        df_out = df.rename(
-            columns={
-                "m": "masc",
-                "f": "fem"
-            }
-        )[
-            ["id", "source", "masc", "fem", "lang_pair"]
-        ]
+        df_out = pd.DataFrame({
+            "id": [f"en-{lang}_{i}" for i in range(len(df))],
+            "source": df["source"],
+            "masc": df["m"],
+            "fem": df["f"],
+            "lang_pair": f"en-{lang}",
+        })
 
         all_data.append(df_out)
 
-    return pd.concat(
-        all_data,
-        ignore_index=True
-    )
+    return pd.concat(all_data, ignore_index=True)
 
 
 def main():
-
     args = get_args()
 
     clone_repository(args.repo_dir)
 
-    data = load_gate(
-        args.repo_dir,
-        args.split
-    )
+    data = load_gate(args.repo_dir)
 
     print("\nGATE dataset")
     print("Shape:", data.shape)
@@ -169,12 +117,9 @@ def main():
         exist_ok=True
     )
 
-    data.to_parquet(
-        args.output_file,
-        index=False
-    )
+    data.to_parquet(args.output_file, index=False)
 
-    print(f"\nSaved to: {args.output_file}")
+    print(f"\nSaved to: {args.output_file.resolve()}")
 
 
 if __name__ == "__main__":

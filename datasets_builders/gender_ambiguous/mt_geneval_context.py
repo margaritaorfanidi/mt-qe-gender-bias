@@ -91,13 +91,15 @@ def validate_data(data, genders):
         return False
 
     same_sources = (
-        data["source"].reset_index(drop=True)
-        == genders["source"].reset_index(drop=True)
+        data["source"].astype(str).str.strip().reset_index(drop=True)
+        ==
+        genders["segment"].astype(str).str.strip().reset_index(drop=True)
     ).all()
 
     same_lang_pairs = (
         data["lang_pair"].reset_index(drop=True)
-        == genders["lang_pair"].reset_index(drop=True)
+        ==
+        genders["lang_pair"].reset_index(drop=True)
     ).all()
 
     return same_sources and same_lang_pairs
