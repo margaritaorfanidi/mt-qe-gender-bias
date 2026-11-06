@@ -1,0 +1,10 @@
+# Ignore the entire data folder
+/data/
+
+# Ignore Python virtual environments
+.venv/
+__pycache__/
+*.pyc
+
+# Ignore local environment files
+.env
